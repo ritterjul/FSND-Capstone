@@ -25,7 +25,27 @@ class Swimmer(db.Model):
     last_name = Column(String, nullable=False)
     birth_year = Column(Integer, nullable=False)
 
-    results = relationship('Result')
+    results = relationship('Result', cascade = 'all, delete-orphan')
+
+    def format(self):
+        return {
+            'id': self.id,
+            'gender': self.gender,
+            'first name': self.first_name,
+            'last name': self.last_name,
+            'year of birth': self.birth_year
+        }
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
 
 
 class Meet(db.Model):
@@ -38,8 +58,28 @@ class Meet(db.Model):
     city = Column(String)
     country = Column(String)
 
-    results = relationship('Result')
+    results = relationship('Result', cascade = 'all, delete-orphan')
 
+    def format(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'start date': self.start_date,
+            'end date': self.end_date,
+            'city': self.city,
+            'country': self.country
+        }
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
 
 class Result(db.Model):
     __tablename__ = 'results'
@@ -56,3 +96,24 @@ class Result(db.Model):
     swimmer = db.relationship('Swimmer')
     meet = db.relationship('Meet')
 
+    def format(self):
+        return {
+            'id': self.id,
+            'swimmer id': self.swimmer_id,
+            'meet_id': self.meet_id,
+            'course': self.course,
+            'distance': self.distance,
+            'stroke': self.stroke,
+            'time': self.time.strftime("%-M:%S.%f")[:-4]
+        }
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
