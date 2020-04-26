@@ -1,8 +1,10 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
+import datetime
 
 from models import setup_db, Swimmer, Meet, Result
 from auth import AuthError, requires_auth
+
 
 app = Flask(__name__)
 setup_db(app)
@@ -156,13 +158,23 @@ def create_meet(payload):
     data = request.get_json()
 
     try:
-        meet = Meet(
-            name=data['name'],
-            start_date=data['start date'],
-            end_date=data['end date'],
-            city=data['city'],
-            country=data['country']
-        )
+        if 'id' in data and not Meet.query.filter(Meet.id == data['id']).one_or_none():
+            meet = Meet(
+                id=data['id'],
+                name=data['name'],
+                start_date=datetime.datetime.strptime(data['start date'], "%d.%m.%Y").date(),
+                end_date=datetime.datetime.strptime(data['end date'], "%d.%m.%Y").date(),
+                city=data['city'],
+                country=data['country']
+            )
+        else:
+            meet = Meet(
+                name=data['name'],
+                start_date=datetime.datetime.strptime(data['start date'], "%d.%m.%Y").date(),
+                end_date=datetime.datetime.strptime(data['end date'], "%d.%m.%Y").date(),
+                city=data['city'],
+                country=data['country']
+            )
 
         meet.insert()
 
@@ -219,9 +231,9 @@ def edit_meet(payload, meet_id):
         if 'name' in data:
             meet.name = data['name']
         if 'start date' in data:
-            meet.start_date = data['start date']
+            meet.start_date = datetime.datetime.strptime(data['start date'], "%d.%m.%Y").date()
         if 'end date' in data:
-            meet.end_date = data['end date']
+            meet.end_date = datetime.datetime.strptime(data['end date'], "%d.%m.%Y").date()
         if 'city' in data:
             meet.city = data['city']
         if 'country' in data:
@@ -262,7 +274,7 @@ def get_results(payload):
 
     response = {
         'success': True,
-        'meets': [result.format() for result in results]
+        'results': [result.format() for result in results]
     }
     return jsonify(response)
 
@@ -317,13 +329,13 @@ def not_found(error):
     }), 404
 
 
-@app.errorhandler(422)
-def unprocessable(error):
+@app.errorhandler(405)
+def not_found(error):
     return jsonify({
         "success": False,
-        "error": 422,
-        "message": "Unprocessable entity"
-    }), 422
+        "error": 405,
+        "message": "Method not allowed"
+    }), 405
 
 
 if __name__ == '__main__':

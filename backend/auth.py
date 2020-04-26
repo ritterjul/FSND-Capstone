@@ -1,3 +1,4 @@
+import os
 from flask import abort, request
 from urllib.request import urlopen
 import json
@@ -5,9 +6,9 @@ from jose import jwt
 from functools import wraps
 
 
-AUTH0_DOMAIN = 'fsnd-ritterjul.eu.auth0.com'
-ALGORITHMS = ['RS256']
-API_AUDIENCE = 'swimresults'
+AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN', 'fsnd-ritterjul.eu.auth0.com')
+ALGORITHMS = os.environ.get('ALGORITHMS', ['RS256'])
+API_AUDIENCE = os.environ.get('API_AUDIENCE','swimresults')
 
 
 class AuthError(Exception):
@@ -131,7 +132,6 @@ def requires_auth(permission=''):
                 check_permissions(permission, payload)
                 return f(payload, *args, **kwargs)
             except AuthError as err:
-                print(err.error['code'] + ': ' + err.error['description'])
                 abort(err.status_code)
         return wrapper
     return requires_auth_decorator
